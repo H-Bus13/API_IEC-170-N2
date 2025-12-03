@@ -1,1 +1,2 @@
 from .negocio_users import obtener_usuarios_api
+from .negocio_posts import obtener_posts_api
