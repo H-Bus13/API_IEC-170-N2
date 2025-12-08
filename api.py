@@ -1,6 +1,6 @@
-from negocio import crear_user_api
+from negocio.negocio_users import guardar_user_db
 
 # obtener_usuarios_api('https://jsonplaceholder.typicode.com/users')
 # obtener_posts_api ('https://jsonplaceholder.typicode.com/posts')
 url = 'https://jsonplaceholder.typicode.com/posts'
-crear_user_api()
+guardar_user_db()
