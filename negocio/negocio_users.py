@@ -6,7 +6,8 @@ from datos import insertar_objeto, obtener_listado_objetos, obtener_user_name
 from negocio import crear_geolocalizacion, crear_direccion, crear_compania
 
 
-def obtener_data_usuarios_api(url):
+def obtener_data_usuarios_api():
+    url = 'https://jsonplaceholder.typicode.com/users'
     respuesta = requests.get(url)
     if respuesta.status_code == 200:
         print("Solicitud correcta, procesando data Users...")
@@ -48,7 +49,8 @@ def obtener_data_usuarios_api(url):
             f"La solicitud falló con el siguiente código de error: {respuesta.status_code}")
 
 
-def crear_user_api(url):
+def crear_user_api():
+    url = 'https://jsonplaceholder.typicode.com/users/'
     name = input('Ingrese su nombre: ')
     username = input('Ingrese nombre usuario: ')
     email = input('Ingrese correo: ')
@@ -66,8 +68,9 @@ def crear_user_api(url):
         print(respuesta.text)
 
 
-def modificar_user_api(url):
+def modificar_user_api():
     id_user = input('Ingrese ID usuario: ')
+    url = f'https://jsonplaceholder.typicode.com/users/{id_user}'
     try:
         id_user=int(id_user)
     except:
@@ -84,28 +87,45 @@ def modificar_user_api(url):
         'phone': phone,
         'website': website
     }
-    url = f'{url}/{id_user}'
+    url = f'{url}'
     respuesta = requests.put(url, data=user)
     if respuesta.status_code==200:
         print(respuesta.text)
 
 
-def eliminar_user_api(url):
+def eliminar_user_api():
     id_user = input('Ingrese ID usuario: ')
+    url = f'https://jsonplaceholder.typicode.com/users/{id_user}'
     try:
         id_user=int(id_user)
     except:
         print('Ingrese un número entero...')
-    url = f'{url}/{id_user}'
+    url = f'{url}'
     respuesta = requests.delete(url)
     print(respuesta.text)
 
 
-def buscar_user_name_db(nombre):
-    if nombre != '':
-        user = obtener_user_name(nombre)
-        if user != None:
-            return user
+#def buscar_user_name_db():
+#    nombre = input('Ingrese el nombre del user: ')
+#    if nombre != '':
+#        user = obtener_user_name(nombre)
+#        if user != None:
+#            return user
+
+def buscar_user_name_db():
+    nombre = input('Ingrese el nombre del user: ')
+    
+    if not nombre:
+        print("Debe ingresar un nombre.")
+        return
+    
+    user = obtener_user_name(nombre)
+
+    if user is None:
+        print("Usuario no encontrado.")
+    else:
+        print("Usuario encontrado:", user)
+        return user
 
 
 def listado_usuarios_db():
