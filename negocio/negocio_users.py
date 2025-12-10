@@ -5,14 +5,30 @@ from modelos import User
 from datos import insertar_objeto, obtener_listado_objetos, obtener_user_name
 from negocio import crear_geolocalizacion, crear_direccion, crear_compania
 
+def usuario_existe(username):
+    # Esta función usa tu función obtener_user_name()
+    try:
+        user = obtener_user_name(username)  # Debe existir en tu código
+        return user is not None
+    except:
+        return False
 
 def obtener_data_usuarios_api():
     url = 'https://jsonplaceholder.typicode.com/users'
     respuesta = requests.get(url)
+
     if respuesta.status_code == 200:
         print("Solicitud correcta, procesando data Users...")
         usuarios = respuesta.json()
+
         for user in usuarios:
+
+            # VALIDAR SI YA EXISTE EL USER ANTES DE INSERTAR
+            if usuario_existe(user['username']):
+                print(f"El usuario '{user['username']}' ya se encuentra insertado. Saltando...")
+                continue  # evita que siga intentando insertar
+
+            # SI NO EXISTE, INSERTAR TODO NORMAL
             id_geo = crear_geolocalizacion(
                 user['address']['geo']['lat'],
                 user['address']['geo']['lng']
@@ -32,7 +48,7 @@ def obtener_data_usuarios_api():
                 user['company']['bs']
             )
 
-            crear_usuario_db(
+            crear_usuario_db_desde_api(
                 user['name'],
                 user['username'],
                 user['email'],
@@ -42,13 +58,32 @@ def obtener_data_usuarios_api():
                 id_compania
             )
 
+            print(f" Usuario '{user['username']}' insertado correctamente.")
+
     elif respuesta.status_code == 204:
         print("Consulta ejecutada correctamente, pero NO se han encontrado datos.")
+
     else:
-        print(
-            f"La solicitud falló con el siguiente código de error: {respuesta.status_code}")
+        print(f"La solicitud falló con el siguiente código de error: {respuesta.status_code}")
 
+def crear_usuario_db_desde_api(name, username, email, phone, website, id_direccion, id_compania):
 
+    usuario = User(
+        name=name,
+        username=username,
+        email=email,
+        phone=phone,
+        website=website,
+        addressId=id_direccion,
+        companyId=id_compania
+    )
+
+    try:
+        return insertar_objeto(usuario)
+    except Exception as error:
+        print(f"Error al insertar usuario API: {error}")
+        return None
+    
 def crear_user_api():
     url = 'https://jsonplaceholder.typicode.com/users/'
     name = input('Ingrese su nombre: ')
@@ -222,7 +257,7 @@ def pedir_correo_obligatorio():
             return None
 
 
-def crear_usuario_db():
+def crear_usuario_db_interactivo():
 
     print("\n=== Crear nuevo usuario ===")
 

@@ -1,15 +1,8 @@
 from negocio import obtener_data_publicaciones,listado_publicaciones,registrar_usuario,iniciar_sesion
-from negocio.negocio_users import obtener_data_usuarios_api,crear_user_api,modificar_user_api,eliminar_user_api,listado_usuarios_db,crear_usuario_db,buscar_user_name_db
+from negocio.negocio_users import obtener_data_usuarios_api,crear_user_api,modificar_user_api,eliminar_user_api,listado_usuarios_db,usuario_existe,buscar_user_name_db,crear_usuario_db_interactivo
 from auxiliares import url_usuarios,url_publicaciones
 from interfaces_usuarios import menu_inicial,menu_sesion_iniciada
 
-# obtener_data_usuarios_api(url_usuarios)
-# listado_usuarios_db()
-# crear_user_api(url_usuarios)
-# eliminar_user_api(url_usuarios)
-# obtener_data_publicaciones(url_publicaciones)
-# listado_publicaciones()
-# registrar_usuario()
 
 def app():
     while True:
@@ -36,7 +29,7 @@ def app():
                     elif opcion_sesion =='5':
                         listado_usuarios_db()
                     elif opcion_sesion =='6':
-                        crear_usuario_db()
+                        crear_usuario_db_interactivo()
                     elif opcion_sesion =='7':
                         print('Adios...')
                         break
