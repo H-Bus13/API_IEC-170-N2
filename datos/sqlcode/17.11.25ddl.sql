@@ -1,0 +1,55 @@
+CREATE TABLE IF NOT EXISTS users(
+    id INTEGER AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    username VARCHAR(50) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(25) NULL,
+    website VARCHAR(255) NULL,
+
+    CONSTRAINT pk_users PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS posts(
+    id INTEGER AUTO_INCREMENT,
+    title VARCHAR(200) NOT NULL,
+    body VARCHAR(255) NOT NULL,
+    userId INTEGER NOT NULL,
+
+    CONSTRAINT pk_posts PRIMARY KEY (id),
+    CONSTRAINT fk_posts_users FOREIGN KEY (userId) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS geos(
+    id INTEGER AUTO_INCREMENT,
+    lat DECIMAL NOT NULL,
+    lng DECIMAL NOT NULL,
+
+    CONSTRAINT pk_posts PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS addresses(
+    id INTEGER AUTO_INCREMENT,
+    street VARCHAR(100) NOT NULL,
+    suite VARCHAR(20) NOT NULL,
+    city VARCHAR(50) NOT NULL,
+    zipcode VARCHAR(25) NULL,
+    geoId INTEGER NULL,
+
+    CONSTRAINT pk_addresses PRIMARY KEY (id),
+    CONSTRAINT fk_addresses_geos FOREIGN KEY (geoId) REFERENCES geos(id)
+);
+
+CREATE TABLE IF NOT EXISTS companies(
+    id INTEGER AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    catchPhrase VARCHAR(255) NULL,
+    bs VARCHAR(255) NULL,
+
+    CONSTRAINT pk_companies PRIMARY KEY (id)
+);
+
+ALTER TABLE users ADD COLUMN addressId INTEGER NULL;
+ALTER TABLE users ADD COLUMN companyId INTEGER NULL;
+
+ALTER TABLE users ADD CONSTRAINT fk_users_addresses FOREIGN KEY (addressId) REFERENCES addresses(id);
+ALTER TABLE users ADD CONSTRAINT fk_users_companies FOREIGN KEY (companyId) REFERENCES companies(id);

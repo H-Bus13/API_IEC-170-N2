@@ -1,60 +1,49 @@
-import requests
 from prettytable import PrettyTable
+from modelos import Post
+from datos import insertar_objeto, obtener_listado_objetos
+import requests
 
-def obtener_posts_api():
-    url = 'https://jsonplaceholder.typicode.com/posts'
-    tabla_posts = PrettyTable()
-    tabla_posts.field_names=['ID usuario','N°','Titulo','Cuerpo']
+
+def obtener_data_publicaciones(url):
     respuesta = requests.get(url)
     if respuesta.status_code == 200:
-        listado_posts = respuesta.json()
-        for post in listado_posts:
-            tabla_posts.add_row([
-                post['userId'],
-                post['id'],
-                post['title'],
-                post['body']])
-    print(tabla_posts)
+        print("Solicitud correcta, procesando data...")
+        publicaciones = respuesta.json()
+        for publicacion in publicaciones:
+            crear_publicacion(
+                publicacion['title'],
+                publicacion['body'],
+                publicacion['userId']
+            )
+
+    elif respuesta.status_code == 204:
+        print("Consulta ejecutada correctamente, pero NO se han encontrado datos.")
+    else:
+        print(
+            f"La solicitud falló con el siguiente código de error: {respuesta.status_code}")
 
 
-def crear_posts_api():
-    url = 'https://jsonplaceholder.typicode.com/posts'
-    id = input('Id: ')
-    usuario = input('Usuario Id: ')
-    titulo = input('Titulo: ')
-    cuerpo = input('Cuerpo: ')
-    
-    post = {
-    "id": id,
-    "userId": usuario,
-    "title": titulo,
-    "body": cuerpo,
-    }
+def listado_publicaciones():
+    tabla_publicaciones = PrettyTable()
+    tabla_publicaciones.field_names = [
+        'N°', 'Título', 'Contenido']
+    listado_publicaciones = obtener_listado_objetos(Post)
 
-    respuesta = requests.post(url,data=post)
-    print(respuesta)
+    if listado_publicaciones:
+        for publicacion in listado_publicaciones:
+            tabla_publicaciones.add_row(
+                [publicacion.id, publicacion.title, publicacion.body])
+        print(tabla_publicaciones)
 
-def modificar_posts_api():
-    id_post = input("ID del post a modificar: ")
-    url = (f'https://jsonplaceholder.typicode.com/posts/{id_post}')
 
-    usuario = input('Usuario Id: ')
-    titulo = input('Titulo: ')
-    cuerpo = input('Cuerpo: ')
-    
-    post = {
-    "id": id,
-    "userId": usuario,
-    "title": titulo,
-    "body": cuerpo,
-    }
-    
-    respuesta = requests.put(url,data=post)
-    print(respuesta.text)
-
-def eliminar_post_api():
-    user_id = input("ID del post a eliminar: ")
-    url = (f'https://jsonplaceholder.typicode.com/posts/{user_id}')    
-    respuesta = requests.delete(url)
-    print("Status code:", respuesta.status_code)
-    print("Respuesta:", respuesta.text)
+def crear_publicacion(titulo, contenido, id_usuario):
+    publicacion = Post(
+        title=titulo,
+        body=contenido,
+        userId=id_usuario
+    )
+    try:
+        id_publicacion = insertar_objeto(publicacion)
+        return id_publicacion
+    except Exception as error:
+        print(f'Error al guardar la geolocalización: {error}')

@@ -1,124 +1,142 @@
-import requests
-from datos.sql.obtener_datos import obtener_datos_objetos, obtener_user_por_id
-from datos.sql.guardar_datos import insertar_objeto
-from auxiliares import normalizar_cadena
-from modelos.modelos import User
 from prettytable import PrettyTable
+import requests
+import json
+from modelos import User
+from datos import insertar_objeto, obtener_listado_objetos, obtener_user_name
+from negocio import crear_geolocalizacion, crear_direccion, crear_compania
 
-def obtener_users_api():
-    url = 'https://jsonplaceholder.typicode.com/users'
-    tabla_usuarios = PrettyTable()
-    tabla_usuarios.field_names=['N°','Nombre','Nombre Usuario','Correo','Teléfono','Web','Latitud','Longitud']
+
+def obtener_data_usuarios_api(url):
     respuesta = requests.get(url)
     if respuesta.status_code == 200:
-        listado_usuarios = respuesta.json()
-        for usuario in listado_usuarios:
-            tabla_usuarios.add_row([
-                usuario['id'],
-                usuario['name'],
-                usuario['username'],
-                usuario['email'],
-                usuario['phone'],
-                usuario['website'],
-                usuario['address']['geo']['lat'],
-                usuario['address']['geo']['lng']])
-    print(tabla_usuarios)
+        print("Solicitud correcta, procesando data Users...")
+        usuarios = respuesta.json()
+        for user in usuarios:
+            id_geo = crear_geolocalizacion(
+                user['address']['geo']['lat'],
+                user['address']['geo']['lng']
+            )
 
-def crear_user_api():
-    url = 'https://jsonplaceholder.typicode.com/users'
-    nombre = input('Nombre: ')
-    nombre_usuario = input('Usuario: ')
-    correo = input('Correo: ')
-    telefono = input('Celular: ')
-    sitio_web = input('Web: ')
+            id_direccion = crear_direccion(
+                user['address']['street'],
+                user['address']['suite'],
+                user['address']['city'],
+                user['address']['zipcode'],
+                id_geo
+            )
 
+            id_compania = crear_compania(
+                user['company']['name'],
+                user['company']['catchPhrase'],
+                user['company']['bs']
+            )
+
+            crear_usuario_db(
+                user['name'],
+                user['username'],
+                user['email'],
+                user['phone'],
+                user['website'],
+                id_direccion,
+                id_compania
+            )
+
+    elif respuesta.status_code == 204:
+        print("Consulta ejecutada correctamente, pero NO se han encontrado datos.")
+    else:
+        print(
+            f"La solicitud falló con el siguiente código de error: {respuesta.status_code}")
+
+
+def crear_user_api(url):
+    name = input('Ingrese su nombre: ')
+    username = input('Ingrese nombre usuario: ')
+    email = input('Ingrese correo: ')
+    phone = input('Ingrese celular: ')
+    website = input('Ingrese página web: ')
     user = {
-    "name": nombre,
-    "username": nombre_usuario,
-    "email": correo,
-    "phone": telefono,
-    "website": sitio_web,
+        'name': name,
+        'username': username,
+        'email': email,
+        'phone': phone,
+        'website': website
     }
+    respuesta = requests.post(url, data=user)
+    if respuesta.status_code==201:
+        print(respuesta.text)
 
-    respuesta = requests.post(url,data=user)
-    print(respuesta)
 
-
-def modificar_user_api():
-    user_id = input("ID del usuario a modificar: ")
-    url = (f'https://jsonplaceholder.typicode.com/users/{user_id}')
-
-    nombre = input('Nombre: ')
-    nomre_usuario = input('Usuario: ')
-    correo = input('Correo: ')
-    telefono = input('Celular: ')
-    web = input('Web: ')
-    
+def modificar_user_api(url):
+    id_user = input('Ingrese ID usuario: ')
+    try:
+        id_user=int(id_user)
+    except:
+        print('Ingrese un número entero...')
+    name = input('Ingrese su nombre: ')
+    username = input('Ingrese nombre usuario: ')
+    email = input('Ingrese correo: ')
+    phone = input('Ingrese celular: ')
+    website = input('Ingrese página web: ')
     user = {
-    "name": nombre,
-    "username": nomre_usuario,
-    "email": correo,
-    "phone": telefono,
-    "website": web
+        'name': name,
+        'username': username,
+        'email': email,
+        'phone': phone,
+        'website': website
     }
-    
-    respuesta = requests.put(url,data=user)
+    url = f'{url}/{id_user}'
+    respuesta = requests.put(url, data=user)
+    if respuesta.status_code==200:
+        print(respuesta.text)
+
+
+def eliminar_user_api(url):
+    id_user = input('Ingrese ID usuario: ')
+    try:
+        id_user=int(id_user)
+    except:
+        print('Ingrese un número entero...')
+    url = f'{url}/{id_user}'
+    respuesta = requests.delete(url)
     print(respuesta.text)
 
-def eliminar_user_api():
-    user_id = input("ID del usuario a eliminar: ")
-    url = (f'https://jsonplaceholder.typicode.com/users/{user_id}')    
-    respuesta = requests.delete(url)
-    print("Status code:", respuesta.status_code)
-    print("Respuesta:", respuesta.text)
 
-def obtener_users(user):
-    listado_users = obtener_datos_objetos(user)
-    user_encontrado = None
-    if listado_users:
-        for user in listado_users:
-            if normalizar_cadena(user.id) == normalizar_cadena(user):
-                user_encontrado = user
-                break
-    return user_encontrado
+def buscar_user_name_db(nombre):
+    if nombre != '':
+        user = obtener_user_name(nombre)
+        if user != None:
+            return user
 
-def guardar_user_db():
-    while True:
-        id_user = int(input("Ingrese id usuario: "))
-        id_number = id_user
-        if id_user!='':
-            user_encontrado = obtener_user_por_id(id_number)
-            if user_encontrado == None:
-                newname = input('Ingrese nuevo nombre user:')
-                newusername = input('Ingrese nuevo username: ')
-                newemeail = input('Ingrese nuevo mail: ')
-                newphone = int(input('Ingrese nuevo telefono: '))
-                newwebsite = input('Ingrese nuevo web site: ')
-                adressID = int(input('Ingrese id de adress: '))
-                companyID = int(input('Ingrese id de compañia: '))
 
-                if newname!='':
-                    new_user = User(
-                        id=id_number,
-                        name = newname,
-                        username = newusername,
-                        email=newemeail,
-                        phone = newphone,
-                        website = newwebsite, 
-                        adressId = adressID,
-                        companyId = companyID)
-                    insertar_objeto(new_user)
-                    break
-                else:
-                    print('Debe ingresar el nombre del user.')
-            else:
-                print('User YA existe en base de datos.')
-        else:
-            print('Debe ingresar el id del user.')
+def listado_usuarios_db():
+    tabla_usuarios = PrettyTable()
+    tabla_usuarios.field_names = [
+        'N°', 'Nombre', 'Usuario', 'Correo', 'Teléfono', 'Sitio Web']
+    listado_usuarios = obtener_listado_objetos(User)
 
-def modificar_user_db():
-    pass
+    if listado_usuarios:
+        for usuario in listado_usuarios:
+            tabla_usuarios.add_row(
+                [usuario.id, usuario.name, usuario.username, usuario.email, usuario.phone, usuario.website])
+        print(tabla_usuarios)
 
-def eliminar_user_db(url):
-    pass
 
+def crear_usuario_db(nombre, nombre_usuario, correo, telefono, sitio_web, id_direccion, id_compania):
+    user = buscar_user_name_db(nombre)
+    if not user:
+        usuario = User(
+            name=nombre,
+            username=nombre_usuario,
+            email=correo,
+            phone=telefono,
+            website=sitio_web,
+            addressId=id_direccion,
+            companyId=id_compania
+        )
+        try:
+            id_usuario = insertar_objeto(usuario)
+            return id_usuario
+        except Exception as error:
+            print(f'Error al guardar al usuario: {error}')
+    else:
+        print('Usuario ya existe, no será agregado.')

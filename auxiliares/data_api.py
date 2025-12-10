@@ -1,4 +1,7 @@
-usuario_db = 'root'
-servidor_db = 'localhost'
-puerto_db = 3306
-nombre_db = 'api-iec170'
+user = 'root'
+password = ''
+server = 'localhost'
+port = 3306
+database = 'api-iec170'
+url_usuarios = 'https://jsonplaceholder.typicode.com/users'
+url_publicaciones = 'https://jsonplaceholder.typicode.com/posts'
