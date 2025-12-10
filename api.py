@@ -24,7 +24,7 @@ def app():
                 while True:
                     menu_sesion_iniciada()
 
-                    opcion_sesion = input('Seleccione su opción [1-8]: ')
+                    opcion_sesion = input('Seleccione su opción [1-7]: ')
                     if opcion_sesion =='1':
                         obtener_data_usuarios_api()
                     elif opcion_sesion =='2':
@@ -38,8 +38,6 @@ def app():
                     elif opcion_sesion =='6':
                         crear_usuario_db()
                     elif opcion_sesion =='7':
-                        buscar_user_name_db()
-                    elif opcion_sesion =='8':
                         print('Adios...')
                         break
                     else:

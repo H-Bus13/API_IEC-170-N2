@@ -6,11 +6,10 @@ def menu_inicial():
 
 def menu_sesion_iniciada():
     print('-----Menu Usuario-----')
-    print('[1] Mostrar Users Api')
+    print('[1] Agregar Users Api a BD')
     print('[2] Crear User Api')
     print('[3] Modificar User Api')
     print('[4] Eliminar User Api')
     print('[5] Mostrar user BD')
     print('[6] Crear user BD')
-    print('[7] Buscar user BD')
-    print('[8] Salir')
+    print('[7] Salir')

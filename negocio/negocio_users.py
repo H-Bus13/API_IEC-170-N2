@@ -94,38 +94,46 @@ def modificar_user_api():
 
 
 def eliminar_user_api():
-    id_user = input('Ingrese ID usuario: ')
-    url = f'https://jsonplaceholder.typicode.com/users/{id_user}'
-    try:
-        id_user=int(id_user)
-    except:
-        print('Ingrese un número entero...')
-    url = f'{url}'
+    while True:
+        id_user = input("Ingrese ID de usuario a eliminar: ").strip()
+
+        if not id_user.isdigit():
+            print(" Debe ingresar un número entero.\n")
+            continue
+
+        id_user = int(id_user)
+        break
+
+    url = f"https://jsonplaceholder.typicode.com/users/{id_user}"
+
     respuesta = requests.delete(url)
+
+    print(f"Código de respuesta: {respuesta.status_code}")
+    print("Respuesta del servidor:")
     print(respuesta.text)
 
 
-#def buscar_user_name_db():
-#    nombre = input('Ingrese el nombre del user: ')
-#    if nombre != '':
-#        user = obtener_user_name(nombre)
-#        if user != None:
-#            return user
 
-def buscar_user_name_db():
-    nombre = input('Ingrese el nombre del user: ')
-    
-    if not nombre:
-        print("Debe ingresar un nombre.")
-        return
-    
-    user = obtener_user_name(nombre)
+def buscar_user_name_db(nombre):
+   if nombre != '':
+       user = obtener_user_name(nombre)
+       if user != None:
+           return user
 
-    if user is None:
-        print("Usuario no encontrado.")
-    else:
-        print("Usuario encontrado:", user)
-        return user
+# def buscar_user_name_db():
+#     nombre = input('Ingrese el nombre del user: ')
+    
+#     if not nombre:
+#         print("Debe ingresar un nombre.")
+#         return
+    
+#     user = obtener_user_name(nombre)
+
+#     if user is None:
+#         print("Usuario no encontrado.")
+#     else:
+#         print("Usuario encontrado:", user)
+#         return user
 
 
 def listado_usuarios_db():
@@ -141,22 +149,131 @@ def listado_usuarios_db():
         print(tabla_usuarios)
 
 
-def crear_usuario_db(nombre, nombre_usuario, correo, telefono, sitio_web, id_direccion, id_compania):
+def pedir_obligatorio(mensaje, validacion=None, mensaje_error="Dato inválido, inténtalo de nuevo."):
+    while True:
+        valor = input(mensaje).strip()
+
+        # Si el usuario presiona Enter sin escribir nada → cancelar
+        if valor == "":
+            print("Operación cancelada por el usuario.")
+            return None
+
+        # Si no se requiere validación extra
+        if validacion is None:
+            return valor
+
+        # Validación adicional proporcionada
+        if validacion(valor):
+            return valor
+
+        print(mensaje_error)
+
+
+def pedir_entero_obligatorio(mensaje):
+    """Pide un número entero obligatorio, con opción a cancelar."""
+    while True:
+        valor = input(mensaje).strip()
+
+        if valor == "":
+            print("Operación cancelada por el usuario.")
+            return None
+
+        if valor.isdigit():
+            return int(valor)
+
+        print("Debe ingresar un número válido.\n")
+
+
+def pedir_entero_opcional(mensaje):
+    """Pide un número entero opcional (permite Enter)."""
+    while True:
+        valor = input(mensaje).strip()
+
+        if valor == "":
+            return None
+
+        if valor.isdigit():
+            return int(valor)
+
+        print("Debe ingresar un número válido o presionar ENTER para omitir.\n")
+
+
+def validar_correo(correo):
+    return "@" in correo and "." in correo and len(correo) >= 5
+
+
+def pedir_correo_obligatorio():
+    """Pide correo obligatorio con opción de cancelar."""
+    while True:
+        correo = input("Correo (obligatorio, ENTER para cancelar): ").strip()
+
+        if correo == "":
+            print("Operación cancelada por el usuario.")
+            return None
+
+        if validar_correo(correo):
+            return correo
+
+        print("Correo inválido.")
+        opcion = input("¿Desea intentar nuevamente? ('s' para sí, otra tecla para cancelar): ")
+
+        if opcion.lower() != "s":
+            print("Registro cancelado por el usuario.")
+            return None
+
+
+def crear_usuario_db():
+
+    print("\n=== Crear nuevo usuario ===")
+
+    # -------- CAMPOS OBLIGATORIOS --------
+    nombre = pedir_obligatorio("Nombre (obligatorio, ENTER para cancelar): ")
+    if nombre is None:
+        return
+
+    nombre_usuario = pedir_obligatorio("Username (obligatorio, ENTER para cancelar): ")
+    if nombre_usuario is None:
+        return
+
+    correo = pedir_correo_obligatorio()
+    if correo is None:
+        return
+
+    # -------- CAMPOS OPCIONALES --------
+    telefono = input("Teléfono (ENTER para omitir): ").strip()
+    sitio_web = input("Sitio Web (ENTER para omitir): ").strip()
+
+    # -------- ID OBLIGATORIOS --------
+    id_direccion = pedir_entero_obligatorio("ID dirección (obligatorio, ENTER para cancelar): ")
+    if id_direccion is None:
+        return
+
+    id_compania = pedir_entero_obligatorio("ID compañía (obligatorio, ENTER para cancelar): ")
+    if id_compania is None:
+        return
+
+    # -------- VERIFICAR EXISTENCIA --------
     user = buscar_user_name_db(nombre)
-    if not user:
-        usuario = User(
-            name=nombre,
-            username=nombre_usuario,
-            email=correo,
-            phone=telefono,
-            website=sitio_web,
-            addressId=id_direccion,
-            companyId=id_compania
-        )
-        try:
-            id_usuario = insertar_objeto(usuario)
-            return id_usuario
-        except Exception as error:
-            print(f'Error al guardar al usuario: {error}')
-    else:
-        print('Usuario ya existe, no será agregado.')
+
+    if user:
+        print("Usuario ya existe, no será agregado.")
+        return
+
+    # -------- CREAR OBJETO --------
+    usuario = User(
+        name=nombre,
+        username=nombre_usuario,
+        email=correo,
+        phone=telefono if telefono else None,
+        website=sitio_web if sitio_web else None,
+        addressId=id_direccion,
+        companyId=id_compania
+    )
+
+    try:
+        id_usuario = insertar_objeto(usuario)
+        print("Usuario creado con éxito.")
+        return id_usuario
+
+    except Exception as error:
+        print(f"Error al guardar el usuario: {error}")
